@@ -731,9 +731,7 @@ let backgroundMusic = null;
 const musicPlaylist = [
   'Soundeffects/music1.mp3',
   'Soundeffects/music2.mp3',
-  'Soundeffects/music3.mp3',
-  'Soundeffects/music4.mp3',
-  'Soundeffects/music5.mp3'
+  'Soundeffects/music3.mp3'
 ];
 let currentTrackIndex = 0;
 const MUSIC_VOLUME = 0.35; // 35%
