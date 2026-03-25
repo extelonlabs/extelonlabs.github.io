@@ -5,15 +5,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>RimWorld Trait Dice Game</title>
   <link rel="stylesheet" href="styles.css" />
+  <script src="interactive-bg.js" defer></script>
   <script src="script.js" defer></script>
 </head>
 <body>
   <div class="wrap">
     <section class="hero">
-      <h1>RimWorld Trait Dice Game</h1>
-      <p class="subtitle">
-        Animated rolling, locks, reroll-one-trait, presets, copy/share, searchable reference, and expandable saved rolls.
-      </p>
+      <div class="hero-header">
+        <div class="hero-logo">
+          <div class="pawn-wrapper" id="pawnMascot" aria-hidden="true">
+            <img src="images/pawn.png" alt="Dice Character Mascot" class="logo-image pawn-image" />
+            <span class="pawn-eye eye-left"></span>
+            <span class="pawn-eye eye-right"></span>
+          </div>
+        </div>
+
+        <div class="hero-content">
+          <h1>RimWorld Trait Dice Game</h1>
+          <p class="subtitle">
+            Animated rolling, locks, reroll-one-trait, presets, copy/share, searchable reference, and expandable saved rolls.
+          </p>
+        </div>
+      </div>
 
       <div class="settings-grid">
         <div class="setting-box">
@@ -41,6 +54,17 @@
         <button class="ghost small-btn preset-btn" data-preset="cursed">Cursed</button>
         <button class="ghost small-btn preset-btn" data-preset="chaos">Chaos</button>
         <button class="ghost small-btn preset-btn" data-preset="minmax">Min-max</button>
+      </div>
+
+      <div class="music-controls">
+        <span class="control-label">🎵 Background Music</span>
+        <button class="ghost small-btn" id="playMusicBtn">▶ Play</button>
+        <button class="ghost small-btn" id="stopMusicBtn">⏹ Stop</button>
+        <div class="volume-control">
+          <label for="volumeSlider">Volume</label>
+          <input id="volumeSlider" type="range" min="0" max="100" value="50" />
+          <span id="volumeLabel">50%</span>
+        </div>
       </div>
 
       <div class="toolbar">

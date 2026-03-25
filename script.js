@@ -309,7 +309,8 @@ function renderCurrentRoll(isAnimating = false) {
   currentRollEl.innerHTML = currentRoll.map((rawTrait, index) => {
     const trait = normalizeTrait(rawTrait);
     const rollingClass = isAnimating ? "rolling" : "";
-    const delay = isAnimating ? `style="animation-delay:${index * 90}ms"` : "";
+    // CS:GO style stagger: cards reveal with increasing delays for that case-opening feel
+    const delay = isAnimating ? `style="animation-delay:${index * 120}ms; --roll-duration: 0.5s"` : "";
     return `
       <article class="trait-card ${trait.locked ? "locked" : ""} ${rollingClass}" data-card-id="${trait.lockId}" ${delay}>
         <div class="pill ${categoryClass(trait.category)}">${trait.category}</div>
@@ -371,7 +372,22 @@ async function animateRoll(newRoll) {
     currentRoll = newRoll.map((t) => ({ ...normalizeTrait(t), locked: false }));
   }
 
-  for (let frame = 0; frame < 9; frame++) {
+  // CS:GO style rolling: starts fast, decelerates
+  const frames = 18;
+  const totalAnimationTime = 2200; // 2.2 seconds total
+  let elapsedTime = 0;
+
+  for (let frame = 0; frame < frames; frame++) {
+    // Easing function: starts fast, slows down (cubic easing)
+    const progress = frame / (frames - 1);
+    const easedProgress = progress < 0.5 
+      ? 2 * progress * progress 
+      : -1 + (4 - 2 * progress) * progress;
+    
+    // Calculate frame delay with deceleration
+    const frameDelay = (easedProgress * totalAnimationTime) - elapsedTime;
+    elapsedTime += frameDelay;
+
     const preview = [];
     for (let i = 0; i < total; i++) {
       const finalTrait = normalizeTrait(newRoll[i]);
@@ -387,7 +403,7 @@ async function animateRoll(newRoll) {
     }
     currentRoll = preview;
     renderCurrentRoll(true);
-    await new Promise((r) => setTimeout(r, 85));
+    await new Promise((r) => setTimeout(r, Math.max(10, frameDelay)));
   }
 
   const merged = [];
@@ -400,7 +416,10 @@ async function animateRoll(newRoll) {
   }
   currentRoll = merged;
   renderCurrentRoll(true);
-  setTimeout(() => renderCurrentRoll(false), 520);
+  setTimeout(() => {
+    renderCurrentRoll(false);
+    renderTraitReference();
+  }, 520);
 }
 
 function rerollSingleTrait(lockId) {
@@ -424,18 +443,90 @@ function rerollSingleTrait(lockId) {
     return;
   }
 
-  const card = document.querySelector(`[data-card-id="${target.lockId}"]`);
-  if (card) card.classList.add("rerolling");
+  // Play reroll sound
+  const audio = new Audio('Soundeffects/reroll.mp3');
+  audio.volume = 0.7;
+  audio.play().catch(e => console.log('Audio play failed:', e));
 
-  setTimeout(() => {
-    const replacement = available[0];
-    replacement.locked = false;
-    replacement.lockId = target.lockId;
-    existing[index] = replacement;
+  // Start the extended reroll animation
+  animateRerollSingle(lockId, available[0], target);
+}
+
+async function animateRerollSingle(lockId, finalTrait, originalTrait) {
+  const card = document.querySelector(`[data-card-id="${lockId}"]`);
+  if (!card) return;
+
+  const sameCategoryPool = originalTrait.category === "Good" ? TRAITS.good : originalTrait.category === "Neutral" ? TRAITS.neutral : TRAITS.bad;
+
+  // 7.5 second animation with fast start, gradual slowdown
+  const totalDuration = 7500; // 7.5 seconds
+  const frames = 25; // More frames for smoother animation
+  let elapsedTime = 0;
+
+  card.classList.add("rerolling");
+
+  // CS:GO-style timing: 3.5s ultra fast + 2s rapid slowdown + 0.8s dramatic final = 6.3s total
+  // Precise frame times in milliseconds for exact phase control
+  const frameTimes = [
+    0, 50, 105, 165, 230, 300, 380, 470, 570, 680,
+    800, 935, 1085, 1250, 1430, 1625, 1835, 2060, 2300, 2560,
+    2880, 3070, 3270, 3480, 3700, 3930, 4170, 4420, 4690, 5000,
+    5180, 5400, 5660, 5960, 6300, 6300
+  ];
+
+  const start = performance.now();
+
+  for (let frame = 0; frame < frameTimes.length; frame++) {
+    const randomTrait = normalizeTrait(
+      sameCategoryPool[Math.floor(Math.random() * sameCategoryPool.length)]
+    );
+    randomTrait.lockId = lockId;
+
+    const pillEl = card.querySelector('.pill');
+    const nameEl = card.querySelector('.trait-name');
+
+    if (pillEl) pillEl.textContent = randomTrait.category;
+    if (nameEl) nameEl.textContent = randomTrait.name;
+
+    card.className = card.className.replace(/good|neutral|bad/g, '');
+    card.classList.add(categoryClass(randomTrait.category));
+
+    const targetTime = start + frameTimes[frame];
+    const wait = Math.max(0, targetTime - performance.now());
+    await new Promise((r) => setTimeout(r, wait));
+  }
+
+  // Brief pause before final reveal
+  await new Promise((r) => setTimeout(r, 500));
+
+  // Set final trait
+  const pillEl = card.querySelector('.pill');
+  const nameEl = card.querySelector('.trait-name');
+
+  if (pillEl) pillEl.textContent = finalTrait.category;
+  if (nameEl) nameEl.textContent = finalTrait.name;
+
+  // Update card classes for final category
+  card.className = card.className.replace(/good|neutral|bad/g, '');
+  card.classList.add(categoryClass(finalTrait.category));
+
+  // Update the actual data
+  const existing = currentRoll.map(normalizeTrait);
+  const index = existing.findIndex((t) => String(t.lockId) === String(lockId));
+  if (index !== -1) {
+    finalTrait.locked = false;
+    finalTrait.lockId = lockId;
+    existing[index] = finalTrait;
     currentRoll = existing;
+  }
+
+  // Remove animation class and show status
+  setTimeout(() => {
+    card.classList.remove("rerolling");
     renderCurrentRoll(false);
-    showStatus(`Rerolled ${target.name} into ${replacement.name}.`, "ok");
-  }, 500);
+    renderTraitReference();
+    showStatus(`Rerolled ${originalTrait.name} into ${finalTrait.name}.`, "ok");
+  }, 300);
 }
 
 function renderHistory() {
@@ -470,6 +561,9 @@ function renderTraitReference() {
   const filter = referenceFilterEl.value;
   const groups = [["Good", TRAITS.good], ["Neutral", TRAITS.neutral], ["Bad", TRAITS.bad]];
 
+  // Get names of traits in current roll
+  const currentRollNames = currentRoll ? currentRoll.map(t => normalizeTrait(t).name) : [];
+
   const filteredGroups = groups.map(([label, items]) => {
     const filteredItems = items.filter((raw) => {
       const trait = normalizeTrait(raw);
@@ -496,8 +590,10 @@ function renderTraitReference() {
       <div class="reference-list">
         ${items.map((raw) => {
           const trait = normalizeTrait(raw);
+          const isInCurrentRoll = currentRollNames.includes(trait.name);
+          const glowClass = isInCurrentRoll ? 'reference-item-glow' : '';
           return `
-            <div class="reference-item">
+            <div class="reference-item ${glowClass}">
               <strong>${trait.name}</strong>
               <div class="ref-line"><strong>Explanation:</strong> ${trait.description}</div>
               <div class="ref-line"><strong>Buff / Effect:</strong> ${trait.effect}</div>
@@ -628,6 +724,108 @@ function runSelfTests() {
   console.assert(lazy.conflicts.includes("Industrious"), "Lazy should conflict with Industrious");
   const roll = generateRoll();
   console.assert(roll === null || Array.isArray(roll), "generateRoll should return array or null");
+}
+
+// Background music management with playlist
+let backgroundMusic = null;
+const musicPlaylist = [
+  'Soundeffects/music1.mp3',
+  'Soundeffects/music2.mp3',
+  'Soundeffects/music3.mp3',
+  'Soundeffects/music4.mp3',
+  'Soundeffects/music5.mp3'
+];
+let currentTrackIndex = 0;
+const MUSIC_VOLUME = 0.35; // 35%
+
+function getRandomTrack() {
+  return musicPlaylist[Math.floor(Math.random() * musicPlaylist.length)];
+}
+
+function playBackgroundMusic() {
+  if (!backgroundMusic) {
+    const randomTrack = getRandomTrack();
+    backgroundMusic = new Audio(randomTrack);
+    backgroundMusic.volume = MUSIC_VOLUME;
+    
+    // When track ends, play next random track
+    backgroundMusic.addEventListener('ended', () => {
+      playBackgroundMusic();
+    });
+  }
+  backgroundMusic.play().catch(e => console.log('Background music play failed:', e));
+}
+
+function stopBackgroundMusic() {
+  if (backgroundMusic) {
+    backgroundMusic.pause();
+    backgroundMusic.currentTime = 0;
+  }
+}
+
+function setMusicVolume(volume) {
+  if (!backgroundMusic) {
+    const randomTrack = getRandomTrack();
+    backgroundMusic = new Audio(randomTrack);
+    backgroundMusic.addEventListener('ended', () => {
+      playBackgroundMusic();
+    });
+  }
+  backgroundMusic.volume = volume / 100;
+}
+
+// Start music when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    playBackgroundMusic();
+    setupMusicControls();
+  });
+} else {
+  playBackgroundMusic();
+  setupMusicControls();
+}
+
+function setupMusicControls() {
+  const playBtn = document.getElementById('playMusicBtn');
+  const stopBtn = document.getElementById('stopMusicBtn');
+  const volumeSlider = document.getElementById('volumeSlider');
+  const volumeLabel = document.getElementById('volumeLabel');
+
+  if (playBtn) {
+    playBtn.addEventListener('click', () => {
+      playBackgroundMusic();
+      playBtn.style.opacity = '0.6';
+      stopBtn.style.opacity = '1';
+    });
+  }
+
+  if (stopBtn) {
+    stopBtn.addEventListener('click', () => {
+      stopBackgroundMusic();
+      stopBtn.style.opacity = '0.6';
+      playBtn.style.opacity = '1';
+    });
+  }
+
+  if (volumeSlider) {
+    // Set initial volume to 35%
+    volumeSlider.value = 35;
+    if (volumeLabel) {
+      volumeLabel.textContent = '35%';
+    }
+    
+    volumeSlider.addEventListener('input', (e) => {
+      const volume = e.target.value;
+      setMusicVolume(volume);
+      if (volumeLabel) {
+        volumeLabel.textContent = volume + '%';
+      }
+    });
+  }
+
+  // Set initial opacity
+  if (playBtn) playBtn.style.opacity = '0.6';
+  if (stopBtn) stopBtn.style.opacity = '1';
 }
 
 runSelfTests();
