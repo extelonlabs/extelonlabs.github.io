@@ -1,9 +1,15 @@
-
 function makeTrait(name, category, effect, description, stats = {}, tags = [], conflictGroups = []) {
   return {
-    name, category, effect: effect || "No effect text added yet.",
+    name,
+    category,
+    effect: effect || "No effect text added yet.",
     description: description || "No description added yet.",
-    stats, tags, conflictGroups, conflicts: [], locked: false, lockId: null
+    stats,
+    tags,
+    conflictGroups,
+    conflicts: [],
+    locked: false,
+    lockId: null
   };
 }
 
@@ -96,11 +102,12 @@ const CONFLICT_GROUPS = {
 function buildConflictMap() {
   const all = [...TRAITS.good, ...TRAITS.neutral, ...TRAITS.bad];
   const map = {};
+
   for (const trait of all) map[trait.name] = new Set();
 
   for (const trait of all) {
     for (const groupName of trait.conflictGroups || []) {
-      for (const other of (CONFLICT_GROUPS[groupName] || [])) {
+      for (const other of CONFLICT_GROUPS[groupName] || []) {
         if (other !== trait.name) map[trait.name].add(other);
       }
     }
@@ -113,7 +120,9 @@ function buildConflictMap() {
     }
   }
 
-  for (const trait of all) trait.conflicts = [...map[trait.name]].sort();
+  for (const trait of all) {
+    trait.conflicts = [...map[trait.name]].sort();
+  }
 }
 buildConflictMap();
 
@@ -179,34 +188,43 @@ function showStatus(message, type = "") {
 }
 
 function getBalancedCounts() {
-  const total = Math.max(1, parseInt(totalCountEl.value) || 3);
-  let good = Math.max(0, parseInt(goodCountEl.value) || 0);
-  let neutral = Math.max(0, parseInt(neutralCountEl.value) || 0);
-  let bad = Math.max(0, parseInt(badCountEl.value) || 0);
+  const total = Math.max(1, parseInt(totalCountEl.value, 10) || 3);
+  let good = Math.max(0, parseInt(goodCountEl.value, 10) || 0);
+  let neutral = Math.max(0, parseInt(neutralCountEl.value, 10) || 0);
+  let bad = Math.max(0, parseInt(badCountEl.value, 10) || 0);
 
   if (good + neutral + bad !== total) {
-    good = 0; neutral = 0; bad = 0;
+    good = 0;
+    neutral = 0;
+    bad = 0;
+
     for (let i = 0; i < total; i++) {
       const r = Math.random();
       if (r < 0.34) good++;
       else if (r < 0.67) neutral++;
       else bad++;
     }
+
     goodCountEl.value = good;
     neutralCountEl.value = neutral;
     badCountEl.value = bad;
     showStatus("Category counts were auto-balanced to match Total traits.", "ok");
   }
+
   return { good, neutral, bad };
 }
 
 function getLockedByCategory() {
   const map = { Good: [], Neutral: [], Bad: [] };
   if (!currentRoll) return map;
+
   for (const raw of currentRoll) {
     const trait = normalizeTrait(raw);
-    if (trait.locked && map[trait.category]) map[trait.category].push(trait);
+    if (trait.locked && map[trait.category]) {
+      map[trait.category].push(trait);
+    }
   }
+
   return map;
 }
 
@@ -215,19 +233,21 @@ function pickForCategory(pool, neededCount, alreadyPicked, lockedAlreadyInCatego
   if (chosen.length > neededCount) return null;
 
   const available = shuffle(pool).filter((trait) => {
-    return !chosen.some(c => sameTrait(c, trait)) &&
-           !alreadyPicked.some(c => sameTrait(c, trait));
+    return !chosen.some((c) => sameTrait(c, trait)) &&
+           !alreadyPicked.some((c) => sameTrait(c, trait));
   });
 
   for (const raw of available) {
     if (chosen.length >= neededCount) break;
     const candidate = normalizeTrait(raw);
+
     if (!conflictsWithAny(candidate, [...alreadyPicked, ...chosen])) {
       candidate.locked = false;
       candidate.lockId = nextLockId++;
       chosen.push(candidate);
     }
   }
+
   return chosen.length === neededCount ? chosen : null;
 }
 
@@ -237,6 +257,7 @@ function generateRoll() {
 
   for (let attempt = 0; attempt < 400; attempt++) {
     let picked = [];
+
     const goodPick = pickForCategory(TRAITS.good, counts.good, picked, locked.Good);
     if (!goodPick) continue;
     picked = [...picked, ...goodPick];
@@ -251,6 +272,7 @@ function generateRoll() {
 
     return picked;
   }
+
   return null;
 }
 
@@ -309,8 +331,8 @@ function renderCurrentRoll(isAnimating = false) {
   currentRollEl.innerHTML = currentRoll.map((rawTrait, index) => {
     const trait = normalizeTrait(rawTrait);
     const rollingClass = isAnimating ? "rolling" : "";
-    // CS:GO style stagger: cards reveal with increasing delays for that case-opening feel
     const delay = isAnimating ? `style="animation-delay:${index * 120}ms; --roll-duration: 0.5s"` : "";
+
     return `
       <article class="trait-card ${trait.locked ? "locked" : ""} ${rollingClass}" data-card-id="${trait.lockId}" ${delay}>
         <div class="pill ${categoryClass(trait.category)}">${trait.category}</div>
@@ -327,6 +349,7 @@ function renderCurrentRoll(isAnimating = false) {
     button.onclick = () => {
       const id = button.getAttribute("data-lock-id");
       let changedCardId = null;
+
       for (let i = 0; i < currentRoll.length; i++) {
         if (String(currentRoll[i].lockId) === String(id)) {
           currentRoll[i].locked = !currentRoll[i].locked;
@@ -334,7 +357,9 @@ function renderCurrentRoll(isAnimating = false) {
           break;
         }
       }
+
       renderCurrentRoll(false);
+
       if (changedCardId !== null) {
         const card = document.querySelector(`[data-card-id="${changedCardId}"]`);
         if (card) {
@@ -342,6 +367,7 @@ function renderCurrentRoll(isAnimating = false) {
           setTimeout(() => card.classList.remove("lock-pulse"), 450);
         }
       }
+
       showStatus("Updated trait lock state.", "ok");
     };
   });
@@ -351,7 +377,10 @@ function renderCurrentRoll(isAnimating = false) {
   });
 
   document.querySelectorAll(".trait-card").forEach((card) => {
-    const trait = normalizeTrait(currentRoll.find((t) => String(t.lockId) === String(card.getAttribute("data-card-id"))));
+    const trait = normalizeTrait(
+      currentRoll.find((t) => String(t.lockId) === String(card.getAttribute("data-card-id")))
+    );
+
     card.addEventListener("mouseenter", (e) => showTooltip(traitTooltipHtml(trait), e.clientX, e.clientY));
     card.addEventListener("mousemove", (e) => showTooltip(traitTooltipHtml(trait), e.clientX, e.clientY));
     card.addEventListener("mouseleave", hideTooltip);
@@ -372,26 +401,25 @@ async function animateRoll(newRoll) {
     currentRoll = newRoll.map((t) => ({ ...normalizeTrait(t), locked: false }));
   }
 
-  // CS:GO style rolling: starts fast, decelerates
   const frames = 18;
-  const totalAnimationTime = 2200; // 2.2 seconds total
+  const totalAnimationTime = 2200;
   let elapsedTime = 0;
 
   for (let frame = 0; frame < frames; frame++) {
-    // Easing function: starts fast, slows down (cubic easing)
     const progress = frame / (frames - 1);
-    const easedProgress = progress < 0.5 
-      ? 2 * progress * progress 
+    const easedProgress = progress < 0.5
+      ? 2 * progress * progress
       : -1 + (4 - 2 * progress) * progress;
-    
-    // Calculate frame delay with deceleration
+
     const frameDelay = (easedProgress * totalAnimationTime) - elapsedTime;
     elapsedTime += frameDelay;
 
     const preview = [];
+
     for (let i = 0; i < total; i++) {
       const finalTrait = normalizeTrait(newRoll[i]);
       const existing = currentRoll[i] ? normalizeTrait(currentRoll[i]) : null;
+
       if (existing && existing.locked && existing.category === finalTrait.category) {
         preview.push(existing);
       } else {
@@ -401,9 +429,10 @@ async function animateRoll(newRoll) {
         preview.push(randomTrait);
       }
     }
+
     currentRoll = preview;
     renderCurrentRoll(true);
-    await new Promise((r) => setTimeout(r, Math.max(10, frameDelay)));
+    await new Promise((resolve) => setTimeout(resolve, Math.max(10, frameDelay)));
   }
 
   const merged = [];
@@ -414,8 +443,10 @@ async function animateRoll(newRoll) {
     finalTrait.lockId = old?.lockId || nextLockId++;
     merged.push(finalTrait);
   }
+
   currentRoll = merged;
   renderCurrentRoll(true);
+
   setTimeout(() => {
     renderCurrentRoll(false);
     renderTraitReference();
@@ -424,31 +455,36 @@ async function animateRoll(newRoll) {
 
 function rerollSingleTrait(lockId) {
   if (!currentRoll) return;
+
   const existing = currentRoll.map(normalizeTrait);
   const index = existing.findIndex((t) => String(t.lockId) === String(lockId));
   if (index === -1) return;
 
   const target = existing[index];
-  const sameCategoryPool = target.category === "Good" ? TRAITS.good : target.category === "Neutral" ? TRAITS.neutral : TRAITS.bad;
+  const sameCategoryPool =
+    target.category === "Good" ? TRAITS.good :
+    target.category === "Neutral" ? TRAITS.neutral :
+    TRAITS.bad;
+
   const pickedWithoutTarget = existing.filter((_, i) => i !== index);
 
-  const available = shuffle(sameCategoryPool).map(normalizeTrait).filter((candidate) => {
-    if (sameTrait(candidate, target)) return false;
-    if (pickedWithoutTarget.some((p) => sameTrait(p, candidate))) return false;
-    return !conflictsWithAny(candidate, pickedWithoutTarget);
-  });
+  const available = shuffle(sameCategoryPool)
+    .map(normalizeTrait)
+    .filter((candidate) => {
+      if (sameTrait(candidate, target)) return false;
+      if (pickedWithoutTarget.some((p) => sameTrait(p, candidate))) return false;
+      return !conflictsWithAny(candidate, pickedWithoutTarget);
+    });
 
   if (!available.length) {
     showStatus("No valid reroll found for that trait without causing a conflict.", "error");
     return;
   }
 
-  // Play reroll sound
-  const audio = new Audio('Soundeffects/reroll.mp3');
+  const audio = new Audio("Soundeffects/reroll.mp3");
   audio.volume = 0.7;
-  audio.play().catch(e => console.log('Audio play failed:', e));
+  audio.play().catch((e) => console.log("Audio play failed:", e));
 
-  // Start the extended reroll animation
   animateRerollSingle(lockId, available[0], target);
 }
 
@@ -456,17 +492,13 @@ async function animateRerollSingle(lockId, finalTrait, originalTrait) {
   const card = document.querySelector(`[data-card-id="${lockId}"]`);
   if (!card) return;
 
-  const sameCategoryPool = originalTrait.category === "Good" ? TRAITS.good : originalTrait.category === "Neutral" ? TRAITS.neutral : TRAITS.bad;
-
-  // 7.5 second animation with fast start, gradual slowdown
-  const totalDuration = 7500; // 7.5 seconds
-  const frames = 25; // More frames for smoother animation
-  let elapsedTime = 0;
+  const sameCategoryPool =
+    originalTrait.category === "Good" ? TRAITS.good :
+    originalTrait.category === "Neutral" ? TRAITS.neutral :
+    TRAITS.bad;
 
   card.classList.add("rerolling");
 
-  // CS:GO-style timing: 3.5s ultra fast + 2s rapid slowdown + 0.8s dramatic final = 6.3s total
-  // Precise frame times in milliseconds for exact phase control
   const frameTimes = [
     0, 50, 105, 165, 230, 300, 380, 470, 570, 680,
     800, 935, 1085, 1250, 1430, 1625, 1835, 2060, 2300, 2560,
@@ -482,45 +514,41 @@ async function animateRerollSingle(lockId, finalTrait, originalTrait) {
     );
     randomTrait.lockId = lockId;
 
-    const pillEl = card.querySelector('.pill');
-    const nameEl = card.querySelector('.trait-name');
+    const pillEl = card.querySelector(".pill");
+    const nameEl = card.querySelector(".trait-name");
 
     if (pillEl) pillEl.textContent = randomTrait.category;
     if (nameEl) nameEl.textContent = randomTrait.name;
 
-    card.className = card.className.replace(/good|neutral|bad/g, '');
+    card.className = card.className.replace(/good|neutral|bad/g, "");
     card.classList.add(categoryClass(randomTrait.category));
 
     const targetTime = start + frameTimes[frame];
     const wait = Math.max(0, targetTime - performance.now());
-    await new Promise((r) => setTimeout(r, wait));
+    await new Promise((resolve) => setTimeout(resolve, wait));
   }
 
-  // Brief pause before final reveal
-  await new Promise((r) => setTimeout(r, 500));
+  await new Promise((resolve) => setTimeout(resolve, 500));
 
-  // Set final trait
-  const pillEl = card.querySelector('.pill');
-  const nameEl = card.querySelector('.trait-name');
+  const pillEl = card.querySelector(".pill");
+  const nameEl = card.querySelector(".trait-name");
 
   if (pillEl) pillEl.textContent = finalTrait.category;
   if (nameEl) nameEl.textContent = finalTrait.name;
 
-  // Update card classes for final category
-  card.className = card.className.replace(/good|neutral|bad/g, '');
+  card.className = card.className.replace(/good|neutral|bad/g, "");
   card.classList.add(categoryClass(finalTrait.category));
 
-  // Update the actual data
-  const existing = currentRoll.map(normalizeTrait);
-  const index = existing.findIndex((t) => String(t.lockId) === String(lockId));
-  if (index !== -1) {
+  const updated = currentRoll.map(normalizeTrait);
+  const foundIndex = updated.findIndex((t) => String(t.lockId) === String(lockId));
+
+  if (foundIndex !== -1) {
     finalTrait.locked = false;
     finalTrait.lockId = lockId;
-    existing[index] = finalTrait;
-    currentRoll = existing;
+    updated[foundIndex] = finalTrait;
+    currentRoll = updated;
   }
 
-  // Remove animation class and show status
   setTimeout(() => {
     card.classList.remove("rerolling");
     renderCurrentRoll(false);
@@ -559,25 +587,32 @@ function renderHistory() {
 function renderTraitReference() {
   const search = referenceSearchEl.value.trim().toLowerCase();
   const filter = referenceFilterEl.value;
-  const groups = [["Good", TRAITS.good], ["Neutral", TRAITS.neutral], ["Bad", TRAITS.bad]];
+  const groups = [
+    ["Good", TRAITS.good],
+    ["Neutral", TRAITS.neutral],
+    ["Bad", TRAITS.bad]
+  ];
 
-  // Get names of traits in current roll
-  const currentRollNames = currentRoll ? currentRoll.map(t => normalizeTrait(t).name) : [];
+  const currentRollNames = currentRoll ? currentRoll.map((t) => normalizeTrait(t).name) : [];
 
-  const filteredGroups = groups.map(([label, items]) => {
-    const filteredItems = items.filter((raw) => {
-      const trait = normalizeTrait(raw);
-      const matchFilter = filter === "all" || trait.category === filter;
-      const matchSearch =
-        !search ||
-        trait.name.toLowerCase().includes(search) ||
-        trait.description.toLowerCase().includes(search) ||
-        trait.effect.toLowerCase().includes(search) ||
-        trait.conflicts.some((c) => c.toLowerCase().includes(search));
-      return matchFilter && matchSearch;
-    });
-    return [label, filteredItems];
-  }).filter(([, items]) => items.length);
+  const filteredGroups = groups
+    .map(([label, items]) => {
+      const filteredItems = items.filter((raw) => {
+        const trait = normalizeTrait(raw);
+        const matchFilter = filter === "all" || trait.category === filter;
+        const matchSearch =
+          !search ||
+          trait.name.toLowerCase().includes(search) ||
+          trait.description.toLowerCase().includes(search) ||
+          trait.effect.toLowerCase().includes(search) ||
+          trait.conflicts.some((c) => c.toLowerCase().includes(search));
+
+        return matchFilter && matchSearch;
+      });
+
+      return [label, filteredItems];
+    })
+    .filter(([, items]) => items.length);
 
   if (!filteredGroups.length) {
     traitReferenceEl.innerHTML = '<div class="empty">No traits match your current search/filter.</div>';
@@ -591,7 +626,8 @@ function renderTraitReference() {
         ${items.map((raw) => {
           const trait = normalizeTrait(raw);
           const isInCurrentRoll = currentRollNames.includes(trait.name);
-          const glowClass = isInCurrentRoll ? 'reference-item-glow' : '';
+          const glowClass = isInCurrentRoll ? "reference-item-glow" : "";
+
           return `
             <div class="reference-item ${glowClass}">
               <strong>${trait.name}</strong>
@@ -612,6 +648,7 @@ function persistHistory() {
 
 function currentRollText() {
   if (!currentRoll || !currentRoll.length) return "No traits rolled.";
+
   return currentRoll.map((raw) => {
     const t = normalizeTrait(raw);
     return `${t.category}: ${t.name} — ${t.effect}`;
@@ -626,21 +663,26 @@ function applyPreset(name) {
     chaos: { total: 5, good: 2, neutral: 1, bad: 2 },
     minmax: { total: 4, good: 2, neutral: 0, bad: 2 }
   };
+
   const preset = presets[name];
   if (!preset) return;
+
   totalCountEl.value = preset.total;
   goodCountEl.value = preset.good;
   neutralCountEl.value = preset.neutral;
   badCountEl.value = preset.bad;
+
   showStatus(`Applied preset: ${name}.`, "ok");
 }
 
 document.getElementById("rollBtn").onclick = async () => {
   const nextRoll = generateRoll();
+
   if (!nextRoll) {
     showStatus("Could not generate a non-conflicting roll with those settings. Try fewer traits or reduce locked traits.", "error");
     return;
   }
+
   showStatus("Rolling traits...", "ok");
   await animateRoll(nextRoll.map((t) => ({ ...normalizeTrait(t), lockId: nextLockId++ })));
   showStatus("Roll complete.", "ok");
@@ -648,6 +690,7 @@ document.getElementById("rollBtn").onclick = async () => {
 
 document.getElementById("saveBtn").onclick = () => {
   if (!currentRoll || !currentRoll.length) return;
+
   savedRolls.push(currentRoll.map(normalizeTrait));
   persistHistory();
   renderHistory();
@@ -668,8 +711,10 @@ document.getElementById("shareBtn").onclick = async () => {
     showStatus("Roll traits first before creating a share link.", "error");
     return;
   }
+
   const payload = encodeURIComponent(btoa(JSON.stringify(currentRoll.map(normalizeTrait))));
   const url = `${location.origin}${location.pathname}#roll=${payload}`;
+
   try {
     await navigator.clipboard.writeText(url);
     showStatus("Share link copied to clipboard.", "ok");
@@ -706,6 +751,7 @@ referenceFilterEl.addEventListener("change", renderTraitReference);
 
 function hydrateSharedRollFromHash() {
   if (!location.hash.startsWith("#roll=")) return;
+
   try {
     const encoded = location.hash.slice(6);
     const parsed = JSON.parse(atob(decodeURIComponent(encoded)));
@@ -720,114 +766,158 @@ function hydrateSharedRollFromHash() {
 function runSelfTests() {
   const industrious = TRAITS.good.find((t) => t.name === "Industrious");
   const lazy = TRAITS.bad.find((t) => t.name === "Lazy");
+
   console.assert(industrious.conflicts.includes("Lazy"), "Industrious should conflict with Lazy");
   console.assert(lazy.conflicts.includes("Industrious"), "Lazy should conflict with Industrious");
+
   const roll = generateRoll();
   console.assert(roll === null || Array.isArray(roll), "generateRoll should return array or null");
 }
 
-// Background music management with playlist
-let backgroundMusic = null;
-const musicPlaylist = [
-  'Soundeffects/music1.mp3',
-  'Soundeffects/music2.mp3',
-  'Soundeffects/music3.mp3'
-];
-let currentTrackIndex = 0;
-const MUSIC_VOLUME = 0.35; // 35%
+/* =========================
+   BACKGROUND MUSIC
+   Fixed version:
+   - no autoplay on page load
+   - only 3 real music files
+   - user click required
+========================= */
 
-function getRandomTrack() {
-  return musicPlaylist[Math.floor(Math.random() * musicPlaylist.length)];
+const musicPlaylist = [
+  "Soundeffects/music1.mp3",
+  "Soundeffects/music2.mp3",
+  "Soundeffects/music3.mp3"
+];
+
+let backgroundMusic = null;
+let currentTrackIndex = 0;
+let musicStartedOnce = false;
+
+function createBackgroundAudio(index = 0) {
+  const audio = new Audio(musicPlaylist[index]);
+  audio.volume = 0.35;
+  audio.preload = "auto";
+
+  audio.addEventListener("ended", async () => {
+    currentTrackIndex = (currentTrackIndex + 1) % musicPlaylist.length;
+    backgroundMusic = createBackgroundAudio(currentTrackIndex);
+
+    try {
+      await backgroundMusic.play();
+      updateMusicButtons(true);
+    } catch (error) {
+      console.warn("Background music play failed:", error);
+      updateMusicButtons(false);
+    }
+  });
+
+  return audio;
 }
 
-function playBackgroundMusic() {
+function ensureBackgroundAudio() {
   if (!backgroundMusic) {
-    const randomTrack = getRandomTrack();
-    backgroundMusic = new Audio(randomTrack);
-    backgroundMusic.volume = MUSIC_VOLUME;
-    
-    // When track ends, play next random track
-    backgroundMusic.addEventListener('ended', () => {
-      playBackgroundMusic();
-    });
+    backgroundMusic = createBackgroundAudio(currentTrackIndex);
   }
-  backgroundMusic.play().catch(e => console.log('Background music play failed:', e));
+}
+
+async function playBackgroundMusic() {
+  ensureBackgroundAudio();
+
+  try {
+    await backgroundMusic.play();
+    musicStartedOnce = true;
+    updateMusicButtons(true);
+  } catch (error) {
+    console.warn("Background music play failed:", error);
+    updateMusicButtons(false);
+  }
 }
 
 function stopBackgroundMusic() {
-  if (backgroundMusic) {
-    backgroundMusic.pause();
-    backgroundMusic.currentTime = 0;
-  }
+  if (!backgroundMusic) return;
+
+  backgroundMusic.pause();
+  backgroundMusic.currentTime = 0;
+  updateMusicButtons(false);
 }
 
 function setMusicVolume(volume) {
-  if (!backgroundMusic) {
-    const randomTrack = getRandomTrack();
-    backgroundMusic = new Audio(randomTrack);
-    backgroundMusic.addEventListener('ended', () => {
-      playBackgroundMusic();
-    });
-  }
-  backgroundMusic.volume = volume / 100;
+  ensureBackgroundAudio();
+  backgroundMusic.volume = Math.max(0, Math.min(1, volume / 100));
 }
 
-// Start music when DOM is ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    playBackgroundMusic();
-    setupMusicControls();
-  });
-} else {
-  playBackgroundMusic();
-  setupMusicControls();
+function updateMusicButtons(isPlaying) {
+  const playBtn = document.getElementById("playMusicBtn");
+  const stopBtn = document.getElementById("stopMusicBtn");
+
+  if (playBtn) playBtn.style.opacity = isPlaying ? "0.6" : "1";
+  if (stopBtn) stopBtn.style.opacity = isPlaying ? "1" : "0.6";
 }
 
 function setupMusicControls() {
-  const playBtn = document.getElementById('playMusicBtn');
-  const stopBtn = document.getElementById('stopMusicBtn');
-  const volumeSlider = document.getElementById('volumeSlider');
-  const volumeLabel = document.getElementById('volumeLabel');
+  const playBtn = document.getElementById("playMusicBtn");
+  const stopBtn = document.getElementById("stopMusicBtn");
+  const volumeSlider = document.getElementById("volumeSlider");
+  const volumeLabel = document.getElementById("volumeLabel");
+
+  ensureBackgroundAudio();
+
+  if (volumeSlider) {
+    const initialVolume = Number(volumeSlider.value || 35);
+    setMusicVolume(initialVolume);
+    if (volumeLabel) volumeLabel.textContent = `${initialVolume}%`;
+  }
 
   if (playBtn) {
-    playBtn.addEventListener('click', () => {
-      playBackgroundMusic();
-      playBtn.style.opacity = '0.6';
-      stopBtn.style.opacity = '1';
+    playBtn.addEventListener("click", async () => {
+      await playBackgroundMusic();
     });
   }
 
   if (stopBtn) {
-    stopBtn.addEventListener('click', () => {
+    stopBtn.addEventListener("click", () => {
       stopBackgroundMusic();
-      stopBtn.style.opacity = '0.6';
-      playBtn.style.opacity = '1';
     });
   }
 
   if (volumeSlider) {
-    // Set initial volume to 35%
-    volumeSlider.value = 35;
-    if (volumeLabel) {
-      volumeLabel.textContent = '35%';
-    }
-    
-    volumeSlider.addEventListener('input', (e) => {
-      const volume = e.target.value;
-      setMusicVolume(volume);
-      if (volumeLabel) {
-        volumeLabel.textContent = volume + '%';
-      }
+    volumeSlider.addEventListener("input", () => {
+      const value = Number(volumeSlider.value);
+      setMusicVolume(value);
+      if (volumeLabel) volumeLabel.textContent = `${value}%`;
     });
   }
-
-  // Set initial opacity
-  if (playBtn) playBtn.style.opacity = '0.6';
-  if (stopBtn) stopBtn.style.opacity = '1';
 }
 
-runSelfTests();
-renderCurrentRoll();
-renderHistory();
-renderTraitReference();
-hydrateSharedRollFromHash();
+/* Optional:
+   starts music on the FIRST click or key press anywhere,
+   but still respects browser rules because it is user interaction.
+*/
+function startMusicOnFirstInteraction() {
+  if (musicStartedOnce) return;
+
+  playBackgroundMusic();
+
+  document.removeEventListener("click", startMusicOnFirstInteraction);
+  document.removeEventListener("keydown", startMusicOnFirstInteraction);
+  document.removeEventListener("touchstart", startMusicOnFirstInteraction);
+}
+
+function init() {
+  hydrateSharedRollFromHash();
+  renderCurrentRoll();
+  renderHistory();
+  renderTraitReference();
+  runSelfTests();
+  setupMusicControls();
+  updateMusicButtons(false);
+
+  document.addEventListener("click", startMusicOnFirstInteraction, { once: true });
+  document.addEventListener("keydown", startMusicOnFirstInteraction, { once: true });
+  document.addEventListener("touchstart", startMusicOnFirstInteraction, { once: true });
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", init);
+} else {
+  init();
+}
