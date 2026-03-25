@@ -776,12 +776,14 @@ function runSelfTests() {
 
 /* =========================
    BACKGROUND MUSIC
-   Fixed version:
+   Improved version:
    - no autoplay on page load
-   - only 3 real music files
-   - user click required
+   - starts only after user interaction
+   - remembers volume with localStorage
+   - smooth fade-in when music starts
 ========================= */
 
+const MUSIC_VOLUME_KEY = "rimworld-music-volume";
 const musicPlaylist = [
   "Soundeffects/music1.mp3",
   "Soundeffects/music2.mp3",
@@ -791,12 +793,25 @@ const musicPlaylist = [
 let backgroundMusic = null;
 let currentTrackIndex = 0;
 let musicStartedOnce = false;
+let fadeInterval = null;
+
+function getSavedVolume() {
+  const saved = localStorage.getItem(MUSIC_VOLUME_KEY);
+  const parsed = Number(saved);
+  if (Number.isFinite(parsed) && parsed >= 0 && parsed <= 100) {
+    return parsed;
+  }
+  return 10; // default starting volume %
+}
+
+function saveVolume(volumePercent) {
+  localStorage.setItem(MUSIC_VOLUME_KEY, String(volumePercent));
+}
 
 function createBackgroundAudio(index = 0) {
   const audio = new Audio(musicPlaylist[index]);
-  const slider = document.getElementById("volumeSlider");
-  audio.volume = slider ? slider.value / 100 : 0.2;
   audio.preload = "auto";
+  audio.volume = 0;
 
   audio.addEventListener("ended", async () => {
     currentTrackIndex = (currentTrackIndex + 1) % musicPlaylist.length;
@@ -804,6 +819,7 @@ function createBackgroundAudio(index = 0) {
 
     try {
       await backgroundMusic.play();
+      fadeInMusic(backgroundMusic, getSavedVolume(), 1200);
       updateMusicButtons(true);
     } catch (error) {
       console.warn("Background music play failed:", error);
@@ -820,12 +836,41 @@ function ensureBackgroundAudio() {
   }
 }
 
+function clearFadeInterval() {
+  if (fadeInterval) {
+    clearInterval(fadeInterval);
+    fadeInterval = null;
+  }
+}
+
+function fadeInMusic(audio, targetVolumePercent, duration = 1000) {
+  clearFadeInterval();
+
+  const targetVolume = Math.max(0, Math.min(1, targetVolumePercent / 100));
+  const steps = 20;
+  const stepDuration = Math.max(20, Math.floor(duration / steps));
+  let currentStep = 0;
+
+  audio.volume = 0;
+
+  fadeInterval = setInterval(() => {
+    currentStep += 1;
+    audio.volume = targetVolume * (currentStep / steps);
+
+    if (currentStep >= steps) {
+      audio.volume = targetVolume;
+      clearFadeInterval();
+    }
+  }, stepDuration);
+}
+
 async function playBackgroundMusic() {
   ensureBackgroundAudio();
 
   try {
     await backgroundMusic.play();
     musicStartedOnce = true;
+    fadeInMusic(backgroundMusic, getSavedVolume(), 1200);
     updateMusicButtons(true);
   } catch (error) {
     console.warn("Background music play failed:", error);
@@ -836,14 +881,25 @@ async function playBackgroundMusic() {
 function stopBackgroundMusic() {
   if (!backgroundMusic) return;
 
+  clearFadeInterval();
   backgroundMusic.pause();
   backgroundMusic.currentTime = 0;
+  backgroundMusic.volume = 0;
   updateMusicButtons(false);
 }
 
-function setMusicVolume(volume) {
-  ensureBackgroundAudio();
-  backgroundMusic.volume = Math.max(0, Math.min(1, volume / 100));
+function setMusicVolume(volumePercent) {
+  const clamped = Math.max(0, Math.min(100, volumePercent));
+  saveVolume(clamped);
+
+  if (backgroundMusic) {
+    backgroundMusic.volume = clamped / 100;
+  }
+
+  const volumeLabel = document.getElementById("volumeLabel");
+  if (volumeLabel) {
+    volumeLabel.textContent = `${clamped}%`;
+  }
 }
 
 function updateMusicButtons(isPlaying) {
@@ -859,13 +915,16 @@ function setupMusicControls() {
   const stopBtn = document.getElementById("stopMusicBtn");
   const volumeSlider = document.getElementById("volumeSlider");
   const volumeLabel = document.getElementById("volumeLabel");
+  const savedVolume = getSavedVolume();
 
   ensureBackgroundAudio();
 
   if (volumeSlider) {
-    const initialVolume = Number(volumeSlider.value || 35);
-    setMusicVolume(initialVolume);
-    if (volumeLabel) volumeLabel.textContent = `${initialVolume}%`;
+    volumeSlider.value = String(savedVolume);
+  }
+
+  if (volumeLabel) {
+    volumeLabel.textContent = `${savedVolume}%`;
   }
 
   if (playBtn) {
@@ -884,9 +943,18 @@ function setupMusicControls() {
     volumeSlider.addEventListener("input", () => {
       const value = Number(volumeSlider.value);
       setMusicVolume(value);
-      if (volumeLabel) volumeLabel.textContent = `${value}%`;
     });
   }
+}
+
+function startMusicOnFirstInteraction() {
+  if (musicStartedOnce) return;
+
+  playBackgroundMusic();
+
+  document.removeEventListener("click", startMusicOnFirstInteraction);
+  document.removeEventListener("keydown", startMusicOnFirstInteraction);
+  document.removeEventListener("touchstart", startMusicOnFirstInteraction);
 }
 
 /* Optional:
