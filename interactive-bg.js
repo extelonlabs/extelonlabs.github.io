@@ -13,7 +13,7 @@ class InteractiveBackground {
     // background movement
     this.currentBgX = 0;
     this.targetBgX = 0;
-    this.maxBgShift = 18;
+    this.maxBgShift = 10;
 
     // eye movement
     this.currentEyeX = 0;
