@@ -794,7 +794,8 @@ let musicStartedOnce = false;
 
 function createBackgroundAudio(index = 0) {
   const audio = new Audio(musicPlaylist[index]);
-  audio.volume = 0.35;
+  const slider = document.getElementById("volumeSlider");
+  audio.volume = slider ? slider.value / 100 : 0.2;
   audio.preload = "auto";
 
   audio.addEventListener("ended", async () => {
