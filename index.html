@@ -12,7 +12,7 @@
     <section class="hero">
       <h1>RimWorld Trait Dice Game</h1>
       <p class="subtitle">
-        Animated rolling, trait locks, presets, hover/click details, share/copy tools, searchable reference, and expandable saved rolls.
+        Animated rolling, locks, reroll-one-trait, presets, copy/share, searchable reference, and expandable saved rolls.
       </p>
 
       <div class="settings-grid">
@@ -57,25 +57,21 @@
 
     <div class="grid">
       <section class="panel">
-        <div class="panel-row">
-          <div>
-            <h2>Current roll</h2>
-            <p class="lead">Hover or click a trait card for a quick popup. Locked traits glow and stay fixed during rerolls.</p>
-          </div>
-        </div>
+        <h2>Current roll</h2>
+        <p class="lead">Hover gives lift + glow. Lock pulses. Reroll flips. Full rolls reveal in a staggered sequence.</p>
         <div class="traits-grid" id="currentRoll"></div>
       </section>
 
       <aside class="panel">
         <h2>Saved rolls</h2>
-        <p class="lead">Click a saved roll to expand its full details.</p>
+        <p class="lead">Click a saved roll to expand its details.</p>
         <div class="history-list" id="historyList"></div>
       </aside>
     </div>
 
     <section class="panel mt-20">
       <h2>Chosen traits details</h2>
-      <p class="lead">All currently selected traits with explanation, effect, and conflict info.</p>
+      <p class="lead">All selected traits with explanation, effect, and conflicts.</p>
       <div id="chosenTraitsSummary"></div>
     </section>
 
