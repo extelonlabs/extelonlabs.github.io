@@ -5,9 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>RimWorld Trait Roll (Random)</title>
   <link rel="stylesheet" href="styles.css" />
-  <script src="interactive-bg.js" defer></script>
-  <script src="script.js" defer></script>
   <link rel="icon" type="image/png" href="images/pawn.png" />
+
+  <!-- Background parallax + pawn eye-tracking -->
+  <script src="interactive-bg.js" defer></script>
+
+  <!-- Main app — ES module, imports all sub-modules automatically -->
+  <script type="module" src="js/main.js"></script>
 </head>
 <body>
   <div class="wrap">
