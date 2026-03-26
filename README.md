@@ -2,7 +2,7 @@
 
 This is a web-based application that simulates rolling traits for characters in the game RimWorld. It allows users to generate random trait combinations while respecting conflict rules, lock traits, save rolls, and share results.
 
-LINK : https://extelonlabs.github.io/
+link : https://extelonlabs.github.io/
 
 ## Features
 

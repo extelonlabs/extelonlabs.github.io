@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RimWorld Trait Roll (Random)</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" type="image/png" href="images/pawn.png" />
+
+  <!-- Background parallax + pawn eye-tracking -->
+  <script src="interactive-bg.js" defer></script>
+
+  <!-- Main app — ES module, imports all sub-modules automatically -->
+  <script type="module" src="js/main.js"></script>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <div class="hero-header">
+        <div class="hero-logo">
+          <div class="pawn-wrapper" id="pawnMascot" aria-hidden="true">
+            <img src="images/pawn.png" alt="Dice Character Mascot" class="logo-image pawn-image" />
+            <span class="pawn-eye eye-left"></span>
+            <span class="pawn-eye eye-right"></span>
+          </div>
+        </div>
+
+        <div class="hero-content">
+          <h1>RimWorld Trait Dice Game</h1>
+        </div>
+      </div>
+
+      <div class="settings-grid">
+        <div class="setting-box">
+          <label for="totalCount">Total traits</label>
+          <input id="totalCount" type="number" min="1" max="12" value="3" />
+        </div>
+        <div class="setting-box">
+          <label for="goodCount">Good</label>
+          <input id="goodCount" type="number" min="0" max="12" value="1" />
+        </div>
+        <div class="setting-box">
+          <label for="neutralCount">Neutral</label>
+          <input id="neutralCount" type="number" min="0" max="12" value="1" />
+        </div>
+        <div class="setting-box">
+          <label for="badCount">Bad</label>
+          <input id="badCount" type="number" min="0" max="12" value="1" />
+        </div>
+      </div>
+
+      <div class="preset-row">
+        <span class="preset-label">Presets</span>
+        <button class="ghost small-btn preset-btn" data-preset="balanced">Balanced</button>
+        <button class="ghost small-btn preset-btn" data-preset="lucky">Lucky</button>
+        <button class="ghost small-btn preset-btn" data-preset="cursed">Cursed</button>
+        <button class="ghost small-btn preset-btn" data-preset="chaos">Chaos</button>
+        <button class="ghost small-btn preset-btn" data-preset="minmax">Min-max</button>
+      </div>
+
+      <div class="music-controls">
+        <span class="control-label">🎵 Background Music</span>
+        <button class="ghost small-btn" id="playMusicBtn">▶ Play</button>
+        <button class="ghost small-btn" id="stopMusicBtn">⏹ Stop</button>
+        <div class="volume-control">
+          <label for="volumeSlider">Volume</label>
+          <input id="volumeSlider" type="range" min="0" max="100" value="10" />
+          <span id="volumeLabel">10%</span>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <button class="primary" id="rollBtn">🎲 Roll Traits</button>
+        <button class="secondary" id="saveBtn">💾 Save Roll</button>
+        <button class="ghost" id="copyBtn">📋 Copy Roll</button>
+        <button class="ghost" id="shareBtn">🔗 Share Link</button>
+        <button class="ghost" id="clearBtn">🧹 Clear</button>
+        <button class="danger" id="resetBtn">♻ Reset</button>
+      </div>
+
+      <div id="statusArea" class="status-area"></div>
+    </section>
+
+    <div class="grid">
+      <section class="panel">
+        <h2>Current roll</h2>
+        <div class="traits-grid" id="currentRoll"></div>
+      </section>
+
+      <aside class="panel">
+        <h2>Saved rolls</h2>
+        <p class="lead">Click a saved roll to expand its details.</p>
+        <div class="history-list" id="historyList"></div>
+      </aside>
+    </div>
+
+    <section class="panel mt-20">
+      <h2>Chosen traits details</h2>
+      <div id="chosenTraitsSummary"></div>
+    </section>
+
+    <section class="panel mt-20">
+      <div class="panel-row">
+        <div>
+          <h2>Trait reference</h2>
+          <p class="lead">Search and filter the full reference list.</p>
+        </div>
+        <div class="reference-controls">
+          <input id="referenceSearch" type="text" placeholder="Search traits..." />
+          <select id="referenceFilter">
+            <option value="all">All categories</option>
+            <option value="Good">Good</option>
+            <option value="Neutral">Neutral</option>
+            <option value="Bad">Bad</option>
+          </select>
+        </div>
+      </div>
+      <div id="traitReference"></div>
+    </section>
+  </div>
+
+  <div id="tooltip" class="tooltip hidden"></div>
+</body>
+</html>
