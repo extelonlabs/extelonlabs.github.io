@@ -2,7 +2,13 @@
 
 This is a web-based application that simulates rolling traits for characters in the game RimWorld. It allows users to generate random trait combinations while respecting conflict rules, lock traits, save rolls, and share results.
 
-link : https://extelonlabs.github.io/
+link : https://extelonlabs.github.io/dice/
+
+## Site pages
+
+- `index.html` - home page with links to every page: https://extelonlabs.github.io/
+- `dice/` - RimWorld Trait Dice Game (this README): https://extelonlabs.github.io/dice/
+- `map-picker/` - Battle Map Picker: https://extelonlabs.github.io/map-picker/
 
 ## Features
 
