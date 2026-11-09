@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "source": "library/styles.css",
+  "platform": "web",
+  "mode": "operate",
+  "focus": { "outline": "2px solid #c6b5f3", "offset": "4px" },
+  "motion": { "hero": "750ms cubic-bezier(.16,1,.3,1)", "reducedMotion": "no entrance animation" },
+  "breakpoints": { "wide": 1600, "compact": 1150, "drawer": 850, "phone": 570 },
+  "shadows": { "dialog": "0 20px 80px #0006", "artwork": "0 17px 36px #0004" }
+}

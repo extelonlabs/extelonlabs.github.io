@@ -1,56 +1,79 @@
-# RimWorld Trait Dice Game
+# Extelon Library
 
-This is a web-based application that simulates rolling traits for characters in the game RimWorld. It allows users to generate random trait combinations while respecting conflict rules, lock traits, save rolls, and share results.
+A personal library for static websites, built with plain HTML, CSS, and JavaScript. The repository root is ready to serve with GitHub Pages; no build step or backend is required.
 
-link : https://extelonlabs.github.io/
+## Use the library
 
-## Features
+The homepage shows your projects in a grid or list. Use the sidebar to open projects, browse favorites, or return to recently opened work. Search matches project names, descriptions, categories, and links.
 
-- **Trait Rolling**: Generate random trait sets with configurable counts for Good, Neutral, and Bad categories.
-- **Conflict Resolution**: Automatically avoids conflicting traits based on predefined conflict groups and individual conflicts.
-- **Trait Locking**: Lock specific traits to keep them fixed during rerolls.
-- **Presets**: Quick settings for common roll types (e.g., Balanced, Lucky, Cursed).
-- **Animation**: Animated rolling effect for visual feedback.
-- **Tooltips and Details**: Hover or click trait cards for quick info; detailed summaries in the Chosen Traits section.
-- **Searchable Reference**: Browse and search all traits with filters by category.
-- **Save and Share**: Save rolls to local storage, copy roll text, or generate shareable links.
-- **History**: View and expand saved rolls.
-- **Responsive Design**: Works on desktop and mobile devices.
+Choose **Add project** to save either:
 
-## How to Use
+- **A website link:** an absolute `http://` or `https://` URL.
+- **An HTML file:** one self-contained `.html` or `.htm` file, up to 10 MiB. Include its CSS, JavaScript, and images inside the file when it needs them.
 
-1. Open [`index.html`](index.html ) in a web browser.
-2. Adjust the total traits and category counts (Good, Neutral, and Bad) or use a preset.
-3. Click "🎲 Roll Traits" to generate a new set.
-4. Hover over or click trait cards for tooltips.
-5. Lock traits to prevent them from changing on rerolls.
-6. Use "🔁 Reroll" on individual traits if needed.
-7. Save the roll with "💾 Save Roll".
-8. Copy the roll text or share a link using the respective buttons.
-9. Browse the trait reference with search and filters.
+Personal projects are saved in IndexedDB and survive reloads in the same browser and website origin. They do not sync between devices, browsers, or different hosts/ports. Clearing site data removes them. Adding or editing a project in the interface does not upload it to GitHub or change the shared website.
 
-## Code Structure
+Uploaded HTML opens in an iframe with `sandbox="allow-scripts allow-forms"`, without `allow-same-origin`. Its scripts and forms can run, but it cannot use localStorage, open popups, or access the library's browser storage. Separate local CSS, JavaScript, and image files are not uploaded. Use **Download HTML** to keep the original file or open it outside the library when it needs capabilities unavailable in the viewer.
 
-- **[`index.html`](index.html )**: The main HTML structure, including the UI layout and elements.
-- **[`script.js`](script.js )**: Contains all JavaScript logic, including trait data, conflict mapping, roll generation, event handlers, and rendering functions.
-- **[`styles.css`](styles.css )**: CSS styles for the UI, including themes, animations, and responsive design.
+## Back up personal projects
 
-Key functions in [`script.js`](script.js ):
-- [`makeTrait()`](script.js ): Creates trait objects.
-- [`buildConflictMap()`](script.js ): Builds a map of trait conflicts.
-- [`generateRoll()`](script.js ): Generates a non-conflicting trait set.
-- [`animateRoll()`](script.js ): Handles the rolling animation.
-- [`renderCurrentRoll()`](script.js ): Updates the current roll display.
-- [`renderTraitReference()`](script.js ): Populates the searchable trait reference.
+Export a JSON backup from the library's backup controls before clearing browser data or moving to another browser. Backups include personal links and uploaded HTML; they do not include shared projects or your favorites/recently-opened preferences for those shared projects.
 
-## Technologies Used
+Import accepts an Extelon Library JSON backup up to 30 MiB. It merges projects into the current library: matching project IDs are overwritten, and other personal projects are kept. Export has the same 30 MiB limit. Download large HTML projects separately if the library exceeds that limit.
 
-- **HTML5**: Structure and content.
-- **CSS3**: Styling, animations, and responsive layout.
-- **JavaScript (ES6+)**: Logic, DOM manipulation, and local storage.
+## Add a shared project
 
-No external dependencies are required; the app runs entirely in the browser.
+Projects listed in [`library/projects.js`](library/projects.js) appear for every visitor. To include another static website:
 
-## Installation
+1. Put its files in a new folder, such as `projects/my-site/`, with an `index.html` entry point.
+2. Add an entry to the exported `bundledProjects` array in `library/projects.js`:
 
-No installation needed. Clone or download the files and open [`index.html`](index.html ) in any modern web browser. Data is stored locally in the browser's localStorage.
+   ```js
+   {
+     id: 'my-site',
+     title: 'My site',
+     description: 'What this project does.',
+     type: 'link',
+     url: 'projects/my-site/',
+     category: 'Website',
+     color: 'violet',
+     bundled: true,
+     favorite: false,
+     createdAt: Date.UTC(2026, 10, 9),
+     lastOpened: 0,
+   }
+   ```
+
+3. Publish the updated repository through your GitHub Pages workflow when ready.
+
+Use a unique, stable ID that does not start with `local-`; that prefix is reserved for personal additions. Shared entries use `type: 'link'` even for a bundled HTML website. Their relative URLs resolve from the library root. Available colors are `violet`, `green`, `amber`, `blue`, and `rose`.
+
+## Run locally
+
+From the repository root, run:
+
+```sh
+python -m http.server 4178 --bind 127.0.0.1
+```
+
+Open [http://127.0.0.1:4178](http://127.0.0.1:4178). Serve the files over HTTP rather than opening `index.html` directly: the library uses JavaScript modules. Stop the server with Ctrl+C.
+
+## Files and existing projects
+
+| File | Change and purpose |
+| --- | --- |
+| `index.html` | Replaced the root game page with the library homepage, sidebar, and dialogs. |
+| `library/styles.css` | Added responsive library styling, accessible focus states, and mobile navigation. |
+| `library/app.js` | Added project controls, search, favorites, recents, previews, and backup UI. |
+| `library/store.js` | Added validated IndexedDB persistence and atomic backup imports. |
+| `library/projects.js` | Added the manifest for projects shared with all visitors. |
+| `library/favicon.svg` | Added the library's bookmark icon. |
+| `projects/rimworld/index.html` | Preserved the game and fixed its missing script reference. |
+| `PRODUCT.md` | Recorded product requirements and browser-local storage constraints. |
+| `DESIGN.md` | Recorded the implemented design system and responsive layout. |
+| `.impeccable/design.json` | Recorded design tooling metadata. |
+| `.gitignore` | Excluded temporary design decisions and review captures. |
+| `.nojekyll` | Serves the library as plain static files on GitHub Pages. |
+| `README.md` | Replaced the old game instructions with library usage and maintenance notes. |
+
+Old root links containing `#roll=` redirect to `projects/rimworld/`, retaining the shared roll. Root `styles.css`, `script.js`, `interactive-bg.js`, `images/`, and `Soundeffects/` are unchanged dependencies of the preserved game; keep them in place.
