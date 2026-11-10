@@ -1,6 +1,6 @@
 ---
-name: Extelon Library
-description: A quiet personal workspace for static websites.
+name: Extelon Labs
+description: A public home for Extelon Labs projects.
 colors:
   background: "#141519"
   sidebar: "#191a1f"
@@ -18,7 +18,7 @@ typography:
     fontSize: "14px"
     lineHeight: 1.5
   display:
-    fontSize: "clamp(40px, 3.7vw, 60px)"
+    fontSize: "clamp(48px, 5.7vw, 88px)"
     fontWeight: 500
     lineHeight: 1.13
     letterSpacing: "-0.035em"
@@ -28,7 +28,6 @@ typography:
 rounded:
   control: "8px"
   card: "14px"
-  dialog: "16px"
 spacing:
   small: "8px"
   medium: "16px"
@@ -44,35 +43,35 @@ components:
 
 ## Overview
 
-Dark graphite surfaces with soft violet controls and warm white typography. The homepage welcomes the owner; the navigation and project controls behave like a familiar working library. This records the builder's implementation choices, not a user-specified brand system.
+Dark graphite surfaces with soft violet controls and warm white typography. “Things I build.” introduces a public project homepage, with Extelon Labs as the sidebar and top-level identity. Preserve this visual system as the catalog grows.
 
 ## Colors
 
-Violet marks active navigation, primary actions, and focus. Sage, amber, blue, rose, and violet distinguish project covers; they do not imply project health or availability. Preserve the existing RimWorld project’s own styling inside its page.
+Violet marks active navigation, primary actions, and focus. Project artwork can use secondary colors without implying project health or availability. Preserve each existing project's own styling inside its page.
 
 ## Typography
 
-Use the system UI stack for navigation and controls. A Georgia italic word gives the welcome heading its softer character. Real interface text is at least 11px, normally 12–14px; only decorative browser-window artwork uses smaller lettering. Metadata stays secondary to project names.
+Use the system UI stack for navigation and controls, with a Georgia italic accent in the hero. Project names lead, descriptions explain their purpose, and repository links remain secondary. Keep the hero readable as it scales from desktop to phone.
 
 ## Layout
 
-A fixed 244px sidebar sits beside a top search bar and bounded main content. At 1150px the sidebar becomes 220px and the project grid has two columns. At 850px navigation becomes a dismissible drawer. At 570px projects become one column and the decorative hero disappears. The list layout remains an alternate view of the same project data.
+A fixed 238px sidebar sits beside bounded main content. Project cards and sidebar links come from the same manifest. At 1100px the grid uses two columns, at 820px the sidebar becomes top navigation, and at 520px cards use one column. Keep project names and primary destinations readable at every width.
 
 ## Elevation & Depth
 
-Project cards use borders without shadows. Dialogs, the toast, and the decorative stacked windows use soft downward shadows. The background is flat; there are no external texture or font dependencies.
+Project cards use borders without shadows. Decorative artwork uses soft downward shadows. The background is flat; there are no external texture or font dependencies.
 
 ## Shapes
 
-Controls use 6–8px corners, project cards 14px, and dialogs 16px. Icons are one consistent inline SVG stroke system. Cover artwork uses simple geometric browser windows; the RimWorld card uses actual repository imagery.
+Controls use 8px corners and project cards use 14px corners. Icons use a consistent inline SVG stroke system. The catalog uses `rimworld`, `temperature`, `map`, and `launcher` cover treatments. Omit the manifest cover for generic artwork. The RimWorld card uses repository imagery.
 
 ## Components
 
-Native dialogs contain project editing, backups, confirmation, and isolated HTML previews. Every action has a visible label or accessible name. Search, project type, sort, and layout controls apply to the collection below them. Empty states explain how to recover. User-created metadata is escaped before rendering.
+Project cards provide a primary destination and an optional repository link. The primary action label defaults to “Open project” and can be set in the manifest. Sidebar project links jump to those cards. Render manifest copy as text and give links clear accessible names.
 
 ## Do's and Don'ts
 
-- Keep additions visibly local to this browser; do not imply cloud sync or GitHub publishing from the form.
+- Present one shared, repository-maintained project catalog to every visitor.
 - Use real projects and counts. Do not seed fictional work to fill the grid.
-- Keep bundled project files independent from the library shell.
+- Keep individual project files independent from the homepage shell.
 - Respect reduced motion and retain keyboard focus indicators.

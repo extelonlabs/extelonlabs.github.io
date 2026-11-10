@@ -1,4 +1,4 @@
-# Extelon Library
+# Extelon Labs
 
 <!-- impeccable:product-schema 1 -->
 
@@ -8,24 +8,26 @@ web
 
 ## Users
 
-Extelon Labs' owner wants one homepage and a sidebar for their static website projects.
+Visitors browse Extelon Labs projects and open their websites or repositories. The owner maintains the shared project catalog in source control.
 
 ## Product Purpose
 
-A personal library for finding and opening static websites. Support both website links and HTML uploads, as confirmed by the owner.
+A public homepage with a responsive project sidebar and project cards for RimWorld Trait Dice, Battle Map Picker, Simple Temp, and Warlords Launcher. It gives current and future Extelon Labs projects a shared home.
 
 ## Capabilities and Constraints
 
-Keep plain HTML, CSS, and JavaScript compatible with the existing GitHub Pages repository. Preserve the existing RimWorld Trait Dice Game as the first bundled project. Browser-added links and uploaded HTML are local to that browser; a repository manifest supplies shared projects. The browser interface does not write to GitHub.
+Use plain HTML, CSS, and JavaScript on GitHub Pages, served from the repository root on `main`. The `projects` export in `library/projects.js` supplies the catalog. New custom static websites belong in `projects/<slug>/` and receive a manifest entry.
 
-## Implementation Choices
-
-Builder choices: project search, favorites, recent projects, responsive sidebar, browser persistence, export/import backup, and sandboxed previews of single-file HTML. No backend or account setup. Uploads requiring separate files are outside the single-file import feature.
+The homepage has no browser add/upload flow, project editor, backups, or persistent project storage. All visitors see the repository-maintained catalog. There is no backend or account setup.
 
 ## Brand Commitments
 
-Use Extelon Labs as the owner name and Extelon Library as the product name. Visual style is delegated to the builder by the general request for a nice homepage; no specific palette was supplied.
+The public name is Extelon Labs, and the homepage headline is “Things I build.” Preserve the established graphite surfaces, violet accents, and responsive sidebar.
+
+## Existing Project Compatibility
+
+Keep the current modular RimWorld Trait Dice project at `dice/` and Map Picker at `map-picker/`. The earlier game remains at `projects/rimworld/` with its existing behavior and assets. Preserve old homepage `#roll=` links by redirecting to that earlier game with the shared roll intact. The homepage and the games have separate stylesheets.
 
 ## Evidence on Hand
 
-The repository contains the RimWorld Trait Dice Game, its scripts, images, and sound effects. No other project inventory was provided. Do not fabricate projects or usage metrics.
+Project destinations, optional action labels, and optional repository links are declared in `library/projects.js`. Use those entries as the source of truth; do not invent usage metrics or availability claims.

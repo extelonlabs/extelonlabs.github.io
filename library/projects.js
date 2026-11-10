@@ -1,15 +1,41 @@
-// Shared projects appear for every visitor. Personal additions stay in IndexedDB.
-export const bundledProjects = [{
-  id: 'rimworld',
-  title: 'RimWorld Trait Dice',
-  description: 'A little chaos for your next colony. Roll, mix, and save your pawn’s traits.',
-  type: 'link',
-  url: 'projects/rimworld/',
-  category: 'Game',
-  color: 'amber',
-  cover: 'rimworld',
-  bundled: true,
-  favorite: false,
-  createdAt: Date.UTC(2026, 2, 25),
-  lastOpened: 0,
-}];
+// Edit this catalog to publish another project on the homepage.
+export const projects = [
+  {
+    id: 'rimworld-trait-dice',
+    title: 'RimWorld Trait Dice',
+    description: 'Roll a set of traits for your next RimWorld pawn. Lock your picks and reroll the rest.',
+    category: 'Browser game',
+    cover: 'rimworld',
+    url: 'dice/',
+    action: 'Play now',
+    repository: 'https://github.com/extelonlabs/Rimworld-Trait-Dice',
+  },
+  {
+    id: 'simple-temp',
+    title: 'Simple Temp',
+    description: 'Keep an eye on CPU and GPU temperatures with a compact Windows overlay and tray icon.',
+    category: 'Windows utility',
+    cover: 'temperature',
+    url: 'https://github.com/extelonlabs/Simple-Temp/releases/latest',
+    action: 'Download',
+    repository: 'https://github.com/extelonlabs/Simple-Temp',
+  },
+  {
+    id: 'map-picker',
+    title: 'Battle Map Picker',
+    description: 'Browse battle sites on the Calradia map and pick road spots.',
+    category: 'Web tool',
+    cover: 'map',
+    url: 'map-picker/',
+    action: 'Open map',
+  },
+  {
+    id: 'warlords-launcher',
+    title: 'Warlords Launcher',
+    description: 'The Windows launcher for approved StratLords closed test builds.',
+    category: 'Game launcher',
+    cover: 'launcher',
+    url: 'https://github.com/extelonlabs/warlords-launcher',
+    action: 'View on GitHub',
+  },
+];
